@@ -1,0 +1,6 @@
+video_id,query,ground_truth_timestamp
+video1,binary search,12.5
+video1,recursion,45.2
+video2,sorting,78.0
+video2,search algorithm,102.5
+video3,linked list,35.0

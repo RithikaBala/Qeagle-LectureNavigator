@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+numpy
+yt-dlp
+whisper
+pydantic
+pymongo
+langchain_huggingface
+python-dotenv
