@@ -1,0 +1,184 @@
+openapi: 3.0.0
+info:
+  title: Lecture Navigator API
+  version: 1.0.0
+  description: >
+    API for uploading lecture videos, transcribing them with Whisper,
+    storing embeddings in MongoDB, and enabling RAG-based Q&A with HuggingFace Flan-T5.
+
+servers:
+  - url: http://localhost:8000
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check if the backend is running.
+      responses:
+        '200':
+          description: Healthy server response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+  /upload:
+    post:
+      summary: Upload video or YouTube URL
+      description: Accepts a YouTube URL or uploaded video and starts transcription.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                video_url:
+                  type: string
+                  example: "https://www.youtube.com/watch?v=abc123"
+      responses:
+        '200':
+          description: Upload started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+  /status/{video_id}:
+    get:
+      summary: Get transcription status
+      description: Check progress or completion of transcription/embedding.
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                  status:
+                    type: string
+                  progress:
+                    type: integer
+                  transcript_segments:
+                    type: integer
+
+  /rag_hf:
+    post:
+      summary: RAG-based Q&A
+      description: >
+        Ask a question about a video’s transcript.
+        Uses FAISS + MongoDB for semantic search and HuggingFace Flan-T5 for answer generation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                video_id:
+                  type: string
+                  example: "uuid-generated-id"
+                question:
+                  type: string
+                  example: "What is backpropagation in neural networks?"
+      responses:
+        '200':
+          description: Generated answer with supporting transcript segments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                  question:
+                    type: string
+                  rag_answer:
+                    type: string
+                  top_segments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        score:
+                          type: number
+
+  /transcript/{video_id}:
+    get:
+      summary: Get transcript
+      description: Retrieve transcript segments for a video.
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transcript response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                  transcript:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        start:
+                          type: string
+                          example: "00:00:05"
+                        end:
+                          type: string
+                          example: "00:00:15"
+                        text:
+                          type: string
+
+  /video/{video_id}:
+    delete:
+      summary: Delete video data
+      description: Deletes transcript + embeddings for a video.
+      parameters:
+        - name: video_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Video data deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                  status:
+                    type: string
